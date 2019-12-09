@@ -5,7 +5,8 @@ require(forecast)
 source("help_functions.r")
 
 ## Load data 
-load("~/Documents/Data/SWH_SLP_SLP.grad.subset.15.Rdata")
+load("../data/SWH_SLP_SLP.grad.subset.15.Rdata")
+
 longitudeSWH
 latitudeSWH
 range(years.all)

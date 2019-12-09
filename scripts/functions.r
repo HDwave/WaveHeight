@@ -1685,20 +1685,27 @@ get.preddistr <- function(j) {
             idx.longSLP = which(longitudeSLP == longitudeSWH[j])
             idx.latSLP = which(latitudeSLP == latitudeSWH[area.latSWH[k]])
 
-            if(sum(is.na(SWH[j, area.latSWH[k],])) < na.thresh & sum(is.na( SLP[idx.longSLP, idx.latSLP, ])) < na.thresh & sum(is.na( SLP.grad[idx.longSLP, idx.latSLP, ])) < na.thresh) {
+            if(sum(is.na(SWH[j, area.latSWH[k],])) < na.thresh &
+               sum(is.na( SLP[idx.longSLP, idx.latSLP, ])) < na.thresh &
+               sum(is.na( SLP.grad[idx.longSLP, idx.latSLP, ])) < na.thresh) {
                 cat("Fourier, j =", j, "k =", area.latSWH[k], "\n")
                 
-                not.NA = which(!is.na(SWH[j, area.latSWH[k],]) & !is.na( SLP[idx.longSLP, idx.latSLP, ]) & !is.na( SLP.grad[idx.longSLP, idx.latSLP, ]))
+                not.NA = which(!is.na(SWH[j, area.latSWH[k],]) &
+                               !is.na( SLP[idx.longSLP, idx.latSLP, ]) &
+                               !is.na( SLP.grad[idx.longSLP, idx.latSLP, ]))
                 idx.training = idx.training[idx.training %in% not.NA]
                 n.training = length(idx.training)
                 idx.test = idx.test[idx.test %in% not.NA]
                 n.test = length(idx.test)
-            
+
+                ## Estimate lambda and Box-Cox transform SWH in training period
                 SWH.bc.dummy.training = BoxCoxLambda(SWH[j, area.latSWH[k],idx.training])
                 SWH.bc.lambda.training = SWH.bc.dummy.training$lambda
                 SWH.bc.training = SWH.bc.dummy.training$data
+                ## BOx-Cox transform SWH in test period with same lambda
                 SWH.bc.test = BoxCoxLambdaKnown2(SWH[j, area.latSWH[k],idx.test], SWH.bc.lambda.training)
-                
+
+                ## Estimate lambda and Box-Cox transform SLP.grad in training 
                 SLP.grad.bc.dummy.training = BoxCoxLambda(SLP.grad[idx.longSLP, idx.latSLP,idx.training])
                 SLP.grad.bc.lambda.training = SLP.grad.bc.dummy.training$lambda
                 SLP.grad.bc.training = SLP.grad.bc.dummy.training$data
@@ -1739,13 +1746,19 @@ get.preddistr <- function(j) {
                 for(neig in spatial.neighborhoods) {
                     #cat("Vanem&Walker spatial model LASSO, j =", j, "k =", area.latSWH[k], "neig =", neig, "\n")                
                     # Compute mean, max og mean of the neighborhood of the current point
-                    SLP.spatmax = apply(SLP[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, max, na.rm = T)
-                    SLP.spatmin = apply(SLP[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, min, na.rm = T)
-                    SLP.spatmean = apply(SLP[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, mean, na.rm = T)
+                    SLP.spatmax = apply(SLP[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),
+                                            max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, max, na.rm = T)
+                    SLP.spatmin = apply(SLP[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),
+                                            max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, min, na.rm = T)
+                    SLP.spatmean = apply(SLP[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),
+                                             max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, mean, na.rm = T)
 
-                    SLP.grad.spatmax = apply(SLP.grad[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, max, na.rm = T)
-                    SLP.grad.spatmin = apply(SLP.grad[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, min, na.rm = T)
-                    SLP.grad.spatmean = apply(SLP.grad[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, mean, na.rm = T)
+                    SLP.grad.spatmax = apply(SLP.grad[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),
+                                                      max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, max, na.rm = T)
+                    SLP.grad.spatmin = apply(SLP.grad[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),
+                                                      max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, min, na.rm = T)
+                    SLP.grad.spatmean = apply(SLP.grad[ max(idx.longSLP-neig,1):min(idx.longSLP+neig, dim(SLP)[1]),
+                                                       max(idx.latSLP-neig,1):min(idx.latSLP+neig, dim(SLP)[2]),], 3, mean, na.rm = T)
 
                     # Split in test and training
                     SLP.spatmax.training = SLP.spatmax[idx.training]

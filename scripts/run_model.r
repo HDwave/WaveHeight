@@ -51,7 +51,6 @@ print(pred.dist$fits)
 pred.mean = pred.dist$pred.mean
 pred.sd = pred.dist$pred.sd
 pred.lambda = pred.dist$pred.lambda
-save(pred.mean, pred.sd, pred.lambda, file = paste("res.lon", lonSWH, ".lat", latSWH, ".Rdata", sep=""))
 
 ## Get a vector of observations in the test period
 obs  <- SWH[lonSWH, latSWH, training.test[[2]]]
@@ -95,3 +94,31 @@ lines(t.period, pred.median[t.period], col="gray50", lty=2)
 legend("topright", lty=c(1,2,1), lwd=c(1,1,4), col=c("black", "gray50", "gray90"),
        legend=c("Observation", "Predictive median", "90% prediction interval"))
 
+## Predictive trajectories for 10 time points
+t.ind  <- c(40:49)
+random.q  <- array(NA, dim=c(10,10))
+for(i in 1:10) random.q[,i]  <- qBoxCox(runif(10), pred.mean[t.ind[i]], pred.sd, pred.lambda)
+random.q
+plot(t.ind, random.q[1,], type="l", col="gray50",
+     xlab="Time point in test period", ylab="SWH", ylim=c(5,12),
+     main=paste("Lon = ", longitudeSWH[lonSWH], ", Lat = ", latitudeSWH[latSWH]))
+for(i in 2:10) lines(t.ind, random.q[i,], col="gray50")
+lines(t.ind, obs[t.ind], col="black", lwd=2)
+
+## Learn correlation from previous timepoints (last 100 time points in test period)
+sample.q  <- array(NA, dim=c(10,10))
+for(i in 1:10) sample.q[,i]  <- rank(random.q[,i])
+sample.q
+T  <- length(training.test[[2]])
+h.ind  <- training.test[[2]][(T-99):T]
+hist.obs  <- t(array(SWH[lonSWH, latSWH, h.ind], dim=c(10,10)))
+hist.q  <- array(NA, dim=c(10,10))
+for(i in 1:10) hist.q[,i]  <- rank(hist.obs[,i])
+hist.q
+sort.q  <- random.q
+for(i in 1:10) sort.q[,i]  <- sort(random.q[,i])[hist.q[,i]]
+plot(t.ind, sort.q[1,], type="l", col="gray50",
+     xlab="Time point in test period", ylab="SWH", ylim=c(5,12),
+     main=paste("Lon = ", longitudeSWH[lonSWH], ", Lat = ", latitudeSWH[latSWH]))
+for(i in 2:10) lines(t.ind, sort.q[i,], col="gray50")
+lines(t.ind, obs[t.ind], col="black", lwd=2)

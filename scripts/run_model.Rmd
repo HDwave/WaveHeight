@@ -1,7 +1,7 @@
 ## Example of a prediction model for significant wave height (SWH) based on sea level pressure (SLP)
 ### Authors: Hugo L. Hammer, Tor Arne Oigaard, Thordis Thorarinsdottir and Hanne Rognebakke
 
-Script are located in the folder script.
+Scripts are located in the folder script.
 Data example is located in the folder data. 
 
 R working directory should be set to the location of the script folder.

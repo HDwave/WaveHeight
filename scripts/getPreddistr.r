@@ -4,7 +4,7 @@
 # @param k Latitude index   
 # @param neig Size of spatial neighorhood for spatial covariates
 # @return A list of predictive means, predictive spread and lambda for Box-Cox transformation
-get.preddistr <- function(j, k, neig) {
+getPreddistr <- function(j, k, neig) {
     pred.mean = rep(NA, length(training.test[[2]]))
     pred.sd = NA
     pred.lambda = NA
@@ -290,86 +290,4 @@ get.preddistr <- function(j, k, neig) {
         pred.lambda = SWH.bc.lambda.training
     }
     return(list(pred.SWH=SWH.pred, pred.mean=pred.mean, pred.sd=pred.sd, pred.lambda=pred.lambda, fits=fits))
-}
-
-# Performs Box-Cox transformation. The transformation parameter (lambda) is chosen to minimize deviation from the normal distribution (minumum sum of squared skewness and squared kurtosis)
-# @param obs The observations to be transformed
-# @return The observations transformed
-BoxCoxLambda = function(obs) {
-	#lambda = seq(-1.0, 1.0, 0.1)
-	lambda = seq(0.0, 1.0, 0.1)
-	#lambda = seq(-0.5, 1.0, 0.1)
-	obs.trans = matrix(nrow = length(lambda), ncol = length(obs))
-	normdev = rep(NA, length(lambda)) # Holds the amount of deviation from the normal distribution
-    #indNA <- which(is.na(obs))
-    #obs
-	for(i in 1:length(lambda)) {
-		if(lambda[i] == 0) {
-			obs.trans[i,] = log(obs)
-		} else {
-			obs.trans[i,] = (obs^lambda[i]-1)/lambda[i]
-		}
-		normdev[i] = skewness(obs.trans[i,],na.rm = TRUE)^2 + 0.25*(kurtosis(obs.trans[i,],na.rm = TRUE))^2
-	}
-	return(list(data=obs.trans[which.min(normdev),],lambda = lambda[which.min(normdev)]))
-}
-
-# Performs Box-Cox transformation with a known lambda parameter 
-# @param obs The observations to be transformed
-# @param lambda The lambda parameter to be used in the transformation
-# @return The observations transformed
-BoxCoxLambdaKnown = function(obs, lambda) {
-    if(round(lambda,3) == 0) {
-        obs = log(obs)
-    } else {
-        obs = (obs^lambda - 1)/lambda
-    }
-    return(obs)
-}
-
-# Calculates the Fourier terms for modeling seasonality
-# @param x Coefficients
-# @param K Number of Fourier terms   
-# @param m Number of observations per period
-# @return A matrix with 2xK Fourier terms 
-fourier = function(x, K, m) {
-    n = length(x)
-    idx = 1:n
-    fourier.x = matrix(nrow = n, ncol = 2*K)
-    coln = rep(NA, 2*K)
-    for(k in 1:K) {
-        fourier.x[,2*k-1] = sin(2*pi*k*idx/m)*x
-        fourier.x[,2*k] = cos(2*pi*k*idx/m)*x 
-        coln[2*k-1] = paste("sin", k, sep = "")
-        coln[2*k] = paste("cos", k, sep = "")
-    }
-    colnames(fourier.x) = coln
-    return(fourier.x)
-}
-
-# Compute quantiles of the Box Cox distribution
-qBoxCox = function(p, mean, sd, lambda) {
-    if(round(lambda,2) < 0) {
-        q = (lambda*(sd*qnorm(p)+mean)+1)^(1/lambda)
-    } else if(round(lambda,2) == 0) {
-        q = exp(mean + sd*qnorm(p))
-    } else { # lambda > 0
-        T = (1/lambda + mean)/sd
-        Vp = 1 - (1-p)*pnorm(T)
-        q = (lambda*(sd*qnorm(Vp)+mean)+1)^(1/lambda)    
-    }
-    return(q)
-}
-
-# Compute pit values of the Box Cox distribution
-pBoxCox = function(x, mean, sd, lambda) {
-    g.x  <- BoxCoxLambdaKnown(x, lambda)
-    if(round(lambda,2) < 0) {
-        p = pnorm((g.x-mean)/sd) / pnorm((-1/lambda - mean)/sd)
-    } else if(round(lambda,2) == 0) {
-        p = pnorm((g.x-mean)/sd)
-    } else { # lambda > 0
-        p = (pnorm((g.x-mean)/sd) - pnorm((-1/lambda - mean)/sd)) / pnorm((1/lambda + mean)/sd)
-    }
-    return(p)
 }

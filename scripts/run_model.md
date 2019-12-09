@@ -228,8 +228,9 @@ mae
 ```
 ## [1] 0.2328819
 ```
+Plot the prediction and the observation in the first and last 100 time points of the test period
 
-```{r}Plot the prediction and the observation in the first and last 100 time points of the test period
+```r
 upper  <- qBoxCox(0.95, pred.mean, pred.sd, pred.lambda)
 lower  <- qBoxCox(0.05, pred.mean, pred.sd, pred.lambda)
 
@@ -246,7 +247,11 @@ lines(t.period, obs[t.period])
 lines(t.period, pred.median[t.period], col="gray50", lty=2)
 legend("topright", lty=c(1,2,1), lwd=c(1,1,4), col=c("black", "gray50", "gray90"),
        legend=c("Observation", "Predictive median", "90% prediction interval"))
+```
 
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png)
+
+```r
 t.period  <- c(1361:1460)
 t.upper  <- upper[t.period]
 t.lower  <- lower[t.period]
@@ -261,3 +266,5 @@ lines(t.period, pred.median[t.period], col="gray50", lty=2)
 legend("topright", lty=c(1,2,1), lwd=c(1,1,4), col=c("black", "gray50", "gray90"),
        legend=c("Observation", "Predictive median", "90% prediction interval"))
 ```
+
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-2.png)

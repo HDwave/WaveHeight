@@ -89,8 +89,8 @@ pred.median  <- qBoxCox(0.5, pred.mean, pred.sd, pred.lambda)
 mae  <- mean(abs(obs - pred.median))
 mae
 ```
-
-```{r}Plot the prediction and the observation in the first and last 100 time points of the test period
+Plot the prediction and the observation in the first and last 100 time points of the test period
+```{r}
 upper  <- qBoxCox(0.95, pred.mean, pred.sd, pred.lambda)
 lower  <- qBoxCox(0.05, pred.mean, pred.sd, pred.lambda)
 

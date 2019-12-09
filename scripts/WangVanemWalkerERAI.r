@@ -5,7 +5,7 @@ require(forecast)
 source("help_functions.r")
 
 ## Load data 
-load("../data/SWH_SLP_SLP.grad.subset.15.Rdata")
+load("../data/SWH_SLP_SLP.grad.subset.7.Rdata")
 
 longitudeSWH
 latitudeSWH
@@ -15,8 +15,8 @@ summary(SLP)
 summary(SLP.grad)
 
 ## Which grid cells to predict
-lonSWH = 8
-latSWH = 8
+lonSWH = 4
+latSWH = 4
 
 ## How many missing values is "good enough"
 na.thresh = 500

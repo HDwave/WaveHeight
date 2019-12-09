@@ -268,3 +268,104 @@ legend("topright", lty=c(1,2,1), lwd=c(1,1,4), col=c("black", "gray50", "gray90"
 ```
 
 ![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-2.png)
+
+Random predictive trajectories for 10 time points
+
+```r
+t.ind  <- c(40:49)
+random.q  <- array(NA, dim=c(10,10))
+for(i in 1:10) random.q[,i]  <- qBoxCox(runif(10), pred.mean[t.ind[i]], pred.sd, pred.lambda)
+random.q
+```
+
+```
+##           [,1]      [,2]      [,3]      [,4]     [,5]      [,6]      [,7]
+##  [1,] 8.099129  9.165540  8.051188  9.435722 8.279673 10.098651  8.903724
+##  [2,] 8.786796 10.264005 10.881778  9.595262 8.869253  8.574884  9.705092
+##  [3,] 8.520078  9.848269  9.248287  8.136108 8.405114 10.445674  8.514569
+##  [4,] 7.910672  9.541413 10.037430  9.869614 9.586150  9.673548  9.880503
+##  [5,] 8.615341  8.965533  9.601758  8.402719 9.774226  9.333902 10.402726
+##  [6,] 8.140080  8.719936  9.756391  9.805671 8.974964  9.197294 11.093953
+##  [7,] 9.079471  7.551779  8.762334  8.806363 8.263980  8.868835 10.606035
+##  [8,] 8.958264 10.978998  9.948454 10.045141 9.614127  9.656118  8.631154
+##  [9,] 8.165537  9.099614 10.326843  7.570617 9.713761  8.376439  9.229830
+## [10,] 9.063031 10.373708  9.300402  8.598938 8.702372  9.979647  8.794294
+##            [,8]     [,9]    [,10]
+##  [1,]  9.409604 9.205906 7.979990
+##  [2,]  9.423868 9.100057 7.193651
+##  [3,]  9.793909 7.643267 7.415170
+##  [4,] 10.087419 8.317899 6.727189
+##  [5,] 10.145199 8.793349 9.296687
+##  [6,]  8.779393 9.867204 7.260572
+##  [7,]  9.027507 9.707873 7.597674
+##  [8,]  8.502635 8.216025 8.077556
+##  [9,] 10.041282 8.138618 6.963565
+## [10,]  9.022189 8.001899 7.503584
+```
+
+```r
+plot(t.ind, random.q[1,], type="l", col="gray50",
+     xlab="Time point in test period", ylab="SWH", ylim=c(5,12),
+     main=paste("Lon = ", longitudeSWH[lonSWH], ", Lat = ", latitudeSWH[latSWH]))
+for(i in 2:10) lines(t.ind, random.q[i,], col="gray50")
+lines(t.ind, obs[t.ind], col="black", lwd=2)
+```
+
+![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12-1.png)
+
+Learn correlation from previous timepoints (last 100 time points in test period)
+
+```r
+sample.q  <- array(NA, dim=c(10,10))
+for(i in 1:10) sample.q[,i]  <- rank(random.q[,i])
+sample.q
+```
+
+```
+##       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10]
+##  [1,]    2    5    1    6    2    9    4    5    8     8
+##  [2,]    7    8   10    7    5    2    6    6    7     3
+##  [3,]    5    7    3    2    3   10    1    7    1     5
+##  [4,]    1    6    8    9    7    7    7    9    5     1
+##  [5,]    6    3    5    3   10    5    8   10    6    10
+##  [6,]    3    2    6    8    6    4   10    2   10     4
+##  [7,]   10    1    2    5    1    3    9    4    9     7
+##  [8,]    8   10    7   10    8    6    2    1    4     9
+##  [9,]    4    4    9    1    9    1    5    8    3     2
+## [10,]    9    9    4    4    4    8    3    3    2     6
+```
+
+```r
+T  <- length(training.test[[2]])
+h.ind  <- training.test[[2]][(T-99):T]
+hist.obs  <- t(array(SWH[lonSWH, latSWH, h.ind], dim=c(10,10)))
+hist.q  <- array(NA, dim=c(10,10))
+for(i in 1:10) hist.q[,i]  <- rank(hist.obs[,i])
+hist.q
+```
+
+```
+##       [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10]
+##  [1,]    5    6    8    8    5    5    8    8    6     8
+##  [2,]    8    7    7    7    7    7   10    9    7     4
+##  [3,]    2    1    1    1    1    1    1    1    1     2
+##  [4,]    3    2    2    2    2    2    2    2    2     3
+##  [5,]    4    4    3    3    3    3    4    6    5     9
+##  [6,]   10    8    6    6    6    6    5    4    8     6
+##  [7,]    7    9   10   10   10   10    9   10    9     7
+##  [8,]    6    5    4    4    4    4    3    3    3     1
+##  [9,]    1    3    5    5    9    9    6    5    4     5
+## [10,]    9   10    9    9    8    8    7    7   10    10
+```
+
+```r
+sort.q  <- random.q
+for(i in 1:10) sort.q[,i]  <- sort(random.q[,i])[hist.q[,i]]
+plot(t.ind, sort.q[1,], type="l", col="gray50",
+     xlab="Time point in test period", ylab="SWH", ylim=c(5,12),
+     main=paste("Lon = ", longitudeSWH[lonSWH], ", Lat = ", latitudeSWH[latSWH]))
+for(i in 2:10) lines(t.ind, sort.q[i,], col="gray50")
+lines(t.ind, obs[t.ind], col="black", lwd=2)
+```
+
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png)
